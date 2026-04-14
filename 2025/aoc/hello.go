@@ -28,6 +28,8 @@ func main() {
 		fmt.Println(aoc2a())
 	case "aoc2b":
 		fmt.Println(aoc2b())
+	case "aoc3a":
+		fmt.Println(aoc3a())
 	default:
 		fmt.Printf("Invalid command: %s", cmd)
 	}

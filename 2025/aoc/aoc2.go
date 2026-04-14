@@ -9,6 +9,40 @@ import (
 	"strings"
 )
 
+func repeatsString(model string, target string) bool {
+	modelLen := len(model)
+	targetLen := len(target)
+	if targetLen%modelLen != 0 || targetLen == 0 {
+		return false
+	}
+	if model != target[:modelLen] {
+		return false
+	}
+	start := 0
+	for start < targetLen {
+		if model != target[start:start+modelLen] {
+			return false
+		}
+		start += modelLen
+	}
+	return true
+}
+
+func isValidIDV2(candidate string) bool {
+	// invalid if starts with 0
+	if len(candidate) == 0 || candidate[0] == '0' {
+		return false
+	}
+	maxLen := len(candidate) / 2
+	// invalid if it's made of any number of repetitions of a base string
+	for length := 1; length <= maxLen; length++ {
+		if repeatsString(candidate[:length], candidate[length:]) {
+			return false
+		}
+	}
+	return true
+}
+
 func isValidID(candidate string) bool {
 	// invalid if starts with 0
 	if len(candidate) == 0 || candidate[0] == '0' {
@@ -30,12 +64,13 @@ func isValidID(candidate string) bool {
 	return false
 }
 
-func extractInvalidIDInRange(start uint, end uint) <-chan uint {
+func extractInvalidIDInRange(start uint, end uint, isValidIDFunction func(string) bool) <-chan uint {
 	out := make(chan uint)
 	go func() {
 		current := start
 		for current <= end {
-			if !isValidID(strconv.Itoa(int(current))) {
+			// if !isValidID(strconv.Itoa(int(current))) {
+			if !isValidIDFunction(strconv.Itoa(int(current))) {
 				// fmt.Println(current)
 				out <- current
 			}
@@ -97,8 +132,20 @@ func aoc2a() uint {
 	var password uint = 0
 	for start, end := range parseRangesFromStdin {
 		// fmt.Printf("%d -> %d\n", start, end)
-		for invalid := range extractInvalidIDInRange(start, end) {
+		for invalid := range extractInvalidIDInRange(start, end, isValidID) {
 			// fmt.Printf("invalid: %d\n", invalid)
+			password += invalid
+		}
+	}
+	return password
+}
+
+func aoc2b() uint {
+	var password uint = 0
+	for start, end := range parseRangesFromStdin {
+		// fmt.Printf("%d -> %d\n", start, end)
+		for invalid := range extractInvalidIDInRange(start, end, isValidIDV2) {
+			fmt.Printf("invalid: %d\n", invalid)
 			password += invalid
 		}
 	}

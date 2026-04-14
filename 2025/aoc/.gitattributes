@@ -1,0 +1,4 @@
+*.bat   text eol=crlf
+*.go    text eof=lf
+* text=auto
+*.ipynb filter=strip-notebook-output

@@ -103,7 +103,11 @@ var convolutionNeighbours = [][2]int{
 	{+1, +1},
 }
 
-func processBoard(board [][]SlotType, neighboursThreshold uint) ([][]SlotType, uint, error) {
+func processBoard(board [][]SlotType, neighboursThreshold uint, removeAccessible bool) ([][]SlotType, uint, error) {
+	var accessibleMarker SlotType = SlotRollAccessible
+	if removeAccessible {
+		accessibleMarker = SlotEmpty
+	}
 	accessibleCount := uint(0)
 	boardHeight := len(board)
 	if boardHeight == 0 {
@@ -122,7 +126,7 @@ func processBoard(board [][]SlotType, neighboursThreshold uint) ([][]SlotType, u
 				continue
 			}
 			if boardValue != SlotRoll {
-				return nil, 0, fmt.Errorf("invalid slot type: %s", boardValue)
+				return nil, 0, fmt.Errorf("invalid slot type: %s", string(boardValue))
 			}
 
 			rollCount := uint(0)
@@ -134,7 +138,8 @@ func processBoard(board [][]SlotType, neighboursThreshold uint) ([][]SlotType, u
 				}
 			}
 			if rollCount < neighboursThreshold {
-				out[row][col] = SlotRollAccessible
+				// out[row][col] = SlotRollAccessible
+				out[row][col] = accessibleMarker
 				accessibleCount++
 			} else {
 				out[row][col] = SlotRoll
@@ -154,11 +159,39 @@ func aoc4a(neighboursThreshold uint) uint {
 		return 0
 	}
 	fmt.Println(board)
-	processedBoard, accessibleCount, err := processBoard(board, neighboursThreshold)
+	processedBoard, accessibleCount, err := processBoard(board, neighboursThreshold, false)
 	if err != nil {
 		fmt.Println(err)
 		return 0
 	}
 	fmt.Println(boardToString(processedBoard))
 	return accessibleCount
+}
+
+func aoc4b(neighboursThreshold uint) uint {
+	password := uint(0)
+	fmt.Println(ByteToSlot)
+	fmt.Println(SlotToByte)
+	fmt.Println(parseWarehouseLine("..@.@@@."))
+	board, err := warehouseBoardFromStdin()
+	if err != nil {
+		fmt.Println(err)
+		return 0
+	}
+	fmt.Println(board)
+	for {
+		processedBoard, accessibleCount, err := processBoard(board, neighboursThreshold, true)
+		if err != nil {
+			fmt.Println(err)
+			return 0
+		}
+		// fmt.Println(boardToString(processedBoard))
+		fmt.Printf("accessible: %d\n", accessibleCount)
+		if accessibleCount == 0 {
+			break
+		}
+		password += accessibleCount
+		board = processedBoard
+	}
+	return password
 }

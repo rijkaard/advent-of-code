@@ -70,6 +70,9 @@ func parseWarehouseLine(row string) ([]SlotType, error) {
 func warehouseBoardFromStdin() ([][]SlotType, error) {
 	board := make([][]SlotType, 0)
 	for line := range parseLinesFromStdin {
+		if len(line) == 0 {
+			continue
+		}
 		warehouse, err := parseWarehouseLine(line)
 		if err != nil {
 			return board, fmt.Errorf("couldn't parse line %s: %s", line, err)

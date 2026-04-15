@@ -25,13 +25,11 @@ var ByteToSlot = makeByteToSlot()
 func makeByteToSlot() map[byte]SlotType {
 	out := make(map[byte]SlotType)
 	for k, v := range SlotToByte {
-		fmt.Printf("%d: %c\n", k, v)
 		if _, hasKey := out[v]; hasKey {
 			panic("key already present")
 		}
 		out[v] = k
 	}
-	fmt.Println(out)
 	return out
 }
 
@@ -72,7 +70,6 @@ func parseWarehouseLine(row string) ([]SlotType, error) {
 func warehouseBoardFromStdin() ([][]SlotType, error) {
 	board := make([][]SlotType, 0)
 	for line := range parseLinesFromStdin {
-		fmt.Println(line)
 		warehouse, err := parseWarehouseLine(line)
 		if err != nil {
 			return board, fmt.Errorf("couldn't parse line %s: %s", line, err)
@@ -138,7 +135,6 @@ func processBoard(board [][]SlotType, neighboursThreshold uint, removeAccessible
 				}
 			}
 			if rollCount < neighboursThreshold {
-				// out[row][col] = SlotRollAccessible
 				out[row][col] = accessibleMarker
 				accessibleCount++
 			} else {
@@ -150,9 +146,6 @@ func processBoard(board [][]SlotType, neighboursThreshold uint, removeAccessible
 }
 
 func aoc4a(neighboursThreshold uint) uint {
-	fmt.Println(ByteToSlot)
-	fmt.Println(SlotToByte)
-	fmt.Println(parseWarehouseLine("..@.@@@."))
 	board, err := warehouseBoardFromStdin()
 	if err != nil {
 		fmt.Println(err)
@@ -170,9 +163,6 @@ func aoc4a(neighboursThreshold uint) uint {
 
 func aoc4b(neighboursThreshold uint) uint {
 	password := uint(0)
-	fmt.Println(ByteToSlot)
-	fmt.Println(SlotToByte)
-	fmt.Println(parseWarehouseLine("..@.@@@."))
 	board, err := warehouseBoardFromStdin()
 	if err != nil {
 		fmt.Println(err)
@@ -185,7 +175,6 @@ func aoc4b(neighboursThreshold uint) uint {
 			fmt.Println(err)
 			return 0
 		}
-		// fmt.Println(boardToString(processedBoard))
 		fmt.Printf("accessible: %d\n", accessibleCount)
 		if accessibleCount == 0 {
 			break

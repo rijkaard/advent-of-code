@@ -27,6 +27,40 @@ func matchesRanges(n uint, ranges []IDRange) bool {
 	return false
 }
 
+func intersectRanges(first, second IDRange) (IDRange, bool) {
+	if first[0] > second[0] {
+		first, second = second, first
+	}
+	if first[1] < second[0] {
+		return IDRange{0, 0}, false
+	}
+	return IDRange{first[0], max(first[1], second[1])}, true
+}
+
+func mergeRange(new IDRange, ranges []IDRange) []IDRange {
+	out := make([]IDRange, len(ranges), len(ranges)+1)
+	copy(out, ranges)
+	ranges = out
+	for {
+		mergerHappened := false
+		for idx := range len(ranges) {
+			intersection, hasIntersected := intersectRanges(new, ranges[idx])
+			if hasIntersected {
+				// fmt.Printf("intersected: %s + %s = %s", new, ranges[idx], intersection)
+				mergerHappened = true
+				ranges = append(ranges[:idx], ranges[idx+1:]...)
+				new = intersection
+				break
+			}
+		}
+		if !mergerHappened {
+			ranges = append(ranges, new)
+			break
+		}
+	}
+	return ranges
+}
+
 func aoc5a() uint {
 	password := uint(0)
 	state := StateWantsRanges
@@ -63,6 +97,30 @@ func aoc5a() uint {
 		} else if state == StateWantsEOF {
 			fmt.Printf("expected EOF, not %s\n", line)
 		}
+	}
+	return password
+}
+
+func aoc5b() uint {
+	password := uint(0)
+
+	ranges := make([]IDRange, 0)
+
+	for line := range parseLinesFromStdin {
+		if line == "" {
+			break
+		}
+		start, end, err := parseRange(line)
+		if err != nil {
+			fmt.Println(err)
+			return 0
+		}
+		ranges = mergeRange(IDRange{start, end}, ranges)
+	}
+	fmt.Println(ranges)
+	for rngIdx := range ranges {
+		rng := ranges[rngIdx]
+		password += rng[1] - rng[0] + 1
 	}
 	return password
 }

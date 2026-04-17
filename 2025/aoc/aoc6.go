@@ -70,13 +70,10 @@ func aoc6a() uint {
 	problems := make([][]uint, 0)
 	password := uint(0)
 	for line := range parseLinesFromStdin {
-		fmt.Printf("--- %s\n", line)
 		cur_entry_type := MathEntryNone
 		cur_idx := 0
 		for entry := range yieldEntriesFromLine(line) {
-			// fmt.Printf("    %s\n", entry)
 			entry_type, entry_number, entry_op, err := parseEntry(entry)
-			// fmt.Printf("    -> %s %d %s %s\n", entry_type, entry_number, entry_op, err)
 			if err != nil {
 				fmt.Println(err)
 				return 0
@@ -107,6 +104,83 @@ func aoc6a() uint {
 			}
 			cur_idx++
 		}
+	}
+	return password
+}
+
+type Problem struct {
+	entries   []uint
+	operation OperationType
+}
+
+func isColEmpty(col string) bool {
+	for idx := range col {
+		if col[idx] != ' ' {
+			return false
+		}
+	}
+	return true
+}
+func parseProblemFromCols(yield func(Problem) bool) {
+	// var prevCol *string = nil
+	isStartOfProblem := true
+	problem := Problem{make([]uint, 0), OperationNone}
+	for col := range parseColumnsFromStdin {
+		// prevCol = &col
+		is_col_empty := isColEmpty(col)
+		if isStartOfProblem {
+			if is_col_empty {
+				panic("empty col at start of problem")
+			}
+			op_candidate := col[len(col)-1]
+			op := OperationNone
+			switch op_candidate {
+			case '*':
+				op = OperationTimes
+			case '+':
+				op = OperationPlus
+			default:
+				panic(fmt.Sprintf("invalid operation %c in col %s", op_candidate, col))
+			}
+			problem.operation = op
+			isStartOfProblem = false
+		} else if is_col_empty {
+			if problem.operation == OperationNone {
+				panic(fmt.Sprintf("operation not set for problem %s\n", problem))
+			}
+			yield(problem)
+			problem.entries = make([]uint, 0)
+			problem.operation = OperationNone
+			isStartOfProblem = true
+			continue
+		}
+		candidateInt := strings.ReplaceAll(col[:len(col)-1], " ", "")
+		val, err := strconv.Atoi(candidateInt)
+		if err != nil {
+			panic(err)
+		}
+		problem.entries = append(problem.entries, uint(val))
+	}
+	if !isStartOfProblem {
+		yield(problem)
+	}
+}
+
+func aoc6b() uint {
+	// problems := make([][]uint, 0)
+	password := uint(0)
+	for problem := range parseProblemFromCols {
+		fmt.Printf("--- %s\n", problem)
+		result := uint(0)
+		if problem.operation == OperationPlus {
+			result = performPlus(problem.entries)
+		} else if problem.operation == OperationTimes {
+			result += performTimes(problem.entries)
+		} else {
+			fmt.Printf("invalid operation %s", problem.operation)
+		}
+		fmt.Printf("    -> %d\n", result)
+		password += result
 	}
 	return password
 }

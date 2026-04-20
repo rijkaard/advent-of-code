@@ -76,14 +76,22 @@ func parseBeamSplitterRows(yield func([]BeamSplitterEntryType) bool) {
 }
 
 func ensureSingleSource(state []BeamSplitterEntryType) error {
+	return ensureSingleBeamSplitterType(state, BeamSplitterSource)
+}
+
+func ensureSingleBeam(state []BeamSplitterEntryType) error {
+	return ensureSingleBeamSplitterType(state, BeamSplitterBeam)
+}
+
+func ensureSingleBeamSplitterType(state []BeamSplitterEntryType, unique BeamSplitterEntryType) error {
 	n_sources := uint(0)
 	for _, chr := range state {
-		if chr == BeamSplitterSource {
+		if chr == unique {
 			n_sources++
 		}
 	}
 	if n_sources != 1 {
-		return fmt.Errorf("found %d sources, expected 1 in row %s", n_sources, maybePrintBeamSplitterRow(state))
+		return fmt.Errorf("found %d entries of type %s, expected 1 in row %s", n_sources, unique, maybePrintBeamSplitterRow(state))
 	}
 	return nil
 }
@@ -158,5 +166,114 @@ func aoc7a() uint {
 		}
 		// fmt.Printf("--> %s\n", maybePrintBeamSplitterRow(cur))
 	}
+	return password
+}
+
+type BeamSplits struct {
+	beam_pos uint
+	index    uint
+}
+
+func getBeamPosition(state []BeamSplitterEntryType) uint {
+	err := ensureSingleBeam(state)
+	if err != nil {
+		panic(fmt.Sprintf("invalid single-beam state: %s", maybePrintBeamSplitterRow(state)))
+	}
+	beam_index := uint(0)
+	for pos, sts := range state {
+		if sts == BeamSplitterBeam {
+			beam_index = uint(pos)
+			break
+		}
+	}
+	return beam_index
+}
+
+func iterateBeamState(beam_index uint, board [][]BeamSplitterEntryType, start_index uint) <-chan BeamSplits {
+	if len(board) == 0 {
+		panic("empty board")
+	}
+	state_length := uint(len(board[0]))
+	out := make(chan BeamSplits)
+	go func() {
+		for start_index < uint(len(board)) {
+			cur_next := board[start_index]
+			interaction := cur_next[beam_index]
+			if interaction == BeamSplitterSplitter {
+				if beam_index > 0 {
+					out <- BeamSplits{beam_index - 1, start_index + 1}
+				}
+				if beam_index < state_length-1 {
+					out <- BeamSplits{beam_index + 1, start_index + 1}
+				}
+				break
+			} else if interaction == BeamSplitterEmpty {
+				start_index++
+			} else {
+				panic(fmt.Sprintf("unexpected interaction in line %s", maybePrintBeamSplitterRow(cur_next)))
+			}
+		}
+		if start_index == uint(len(board)) {
+			out <- BeamSplits{beam_index, start_index}
+		}
+		close(out)
+	}()
+	return out
+}
+
+func replaceSourceWithBeam(state []BeamSplitterEntryType) {
+	for pos, chr := range state {
+		if chr == BeamSplitterSource {
+			state[pos] = BeamSplitterBeam
+		}
+	}
+}
+
+var countCache = make(map[[2]uint]uint)
+
+func recursiveCountSplits(beam_position uint, board [][]BeamSplitterEntryType, index uint) uint {
+	val, hasKey := countCache[[2]uint{beam_position, index}]
+	if hasKey {
+		return val
+	}
+	out := uint(0)
+	for beam_splits := range iterateBeamState(beam_position, board, index) {
+		// fmt.Println("Beam splits:", beam_splits)
+		if beam_splits.index == uint(len(board)) {
+			out += 1
+		} else {
+			out += recursiveCountSplits(beam_splits.beam_pos, board, beam_splits.index)
+		}
+	}
+	countCache[[2]uint{beam_position, index}] = out
+	return out
+}
+
+func aoc7b() uint {
+	password := uint(0)
+	rows := make([][]BeamSplitterEntryType, 0)
+	var first []BeamSplitterEntryType = nil
+	for cur_row := range parseBeamSplitterRows {
+		if 0 == len(cur_row) {
+			break
+		}
+		if first == nil {
+			err := ensureSingleSource(cur_row)
+			if err != nil {
+				fmt.Println(err)
+				return 0
+			}
+			first = cur_row
+		} else {
+			if len(cur_row) != len(first) {
+				fmt.Printf("inconsistent length of row `%s`", cur_row)
+				return 0
+			}
+			rows = append(rows, cur_row)
+		}
+	}
+	replaceSourceWithBeam(first)
+
+	password = recursiveCountSplits(getBeamPosition(first), rows, 0)
 	return password
 }

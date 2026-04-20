@@ -6,6 +6,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 )
 
 // type FunctionMap map[string]func(...any)
@@ -48,6 +49,22 @@ func main() {
 		fmt.Println(aoc7a())
 	case "aoc7b":
 		fmt.Println(aoc7b())
+	case "aoc8a":
+		if len(os.Args) != 4 {
+			fmt.Printf("Usage: %s <command> n_distances n_circuits", os.Args[0])
+			return
+		}
+		n_distances, err := strconv.Atoi(os.Args[2])
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		n_circuits, err := strconv.Atoi(os.Args[3])
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Println(aoc8a(uint(n_distances), uint(n_circuits)))
 	default:
 		fmt.Printf("Invalid command: %s", cmd)
 	}

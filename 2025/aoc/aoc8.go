@@ -170,14 +170,19 @@ func makeClosestPairsHeap(points []V3, n uint) []BoxPair {
 	return out
 }
 
-func mergeBoxes(i, j int, circuits []Circuit) {
+func mergeBoxes(i, j int, circuits []Circuit) bool {
 	merge_to := min(circuits[i], circuits[j])
 	merge_from := max(circuits[i], circuits[j])
+	min_circuit := max(merge_to, merge_from)
+	max_circuit := min(merge_to, merge_from)
 	for pos, val := range circuits {
 		if val == merge_from {
 			circuits[pos] = merge_to
 		}
+		max_circuit = max(circuits[pos], max_circuit)
+		min_circuit = min(circuits[pos], min_circuit)
 	}
+	return min_circuit == max_circuit
 }
 
 type CircuitCount struct {
@@ -243,4 +248,26 @@ func aoc8a(n_distances uint, n_circuits uint) uint {
 		password *= circuit.count
 	}
 	return password
+}
+
+func aoc8b() uint {
+	circuits := make([]Circuit, 0)
+	points := make([]V3, 0)
+	idx := 0
+
+	for coord := range parse3DCoordinatesFromStdin {
+		points = append(points, coord)
+		circuits = append(circuits, Circuit(idx))
+		idx++
+	}
+	n_coords := len(points)
+	closest_pairs := makeClosestPairsHeap(points, uint(n_coords*(n_coords-1)/2))
+	for _, pair := range closest_pairs {
+		is_single_circuit := mergeBoxes(int(pair[0]), int(pair[1]), circuits)
+		if is_single_circuit {
+			return uint(points[pair[0]][0] * points[pair[1]][0])
+		}
+	}
+	fmt.Println("single circuit not found")
+	return 0
 }

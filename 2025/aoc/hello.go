@@ -65,6 +65,8 @@ func main() {
 			return
 		}
 		fmt.Println(aoc8a(uint(n_distances), uint(n_circuits)))
+	case "aoc8b":
+		fmt.Println(aoc8b())
 	default:
 		fmt.Printf("Invalid command: %s", cmd)
 	}

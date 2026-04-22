@@ -59,7 +59,7 @@ func aoc5b() uint {
 			fmt.Println(err)
 			return 0
 		}
-		ranges = mergeRange(Range[uint]{start, end}, ranges)
+		ranges = mergeRange(Range[uint]{start, end}, ranges, false)
 	}
 	fmt.Println(ranges)
 	for rngIdx := range ranges {

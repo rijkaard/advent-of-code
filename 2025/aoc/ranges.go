@@ -35,6 +35,19 @@ func matchesRanges[T RangeEntryType](n T, ranges []Range[T]) bool {
 	return false
 }
 
+func rangeInRange[T RangeEntryType](contained, container Range[T]) bool {
+	return contained[0] >= container[0] && contained[1] <= container[1]
+}
+
+func rangeInRanges[T RangeEntryType](contained Range[T], ranges []Range[T]) bool {
+	for _, container := range ranges {
+		if rangeInRange(contained, container) {
+			return true
+		}
+	}
+	return false
+}
+
 func intersectRanges[T RangeEntryType, R Range[T]](first, second R) (R, bool) {
 	if first[0] > second[0] {
 		first, second = second, first
@@ -45,10 +58,12 @@ func intersectRanges[T RangeEntryType, R Range[T]](first, second R) (R, bool) {
 	return R{first[0], max(first[1], second[1])}, true
 }
 
-func mergeRange[T RangeEntryType, R Range[T]](new R, ranges []R) []R {
-	out := make([]R, len(ranges), len(ranges)+1)
-	copy(out, ranges)
-	ranges = out
+func mergeRange[T RangeEntryType, R Range[T]](new R, ranges []R, inplace bool) []R {
+	if inplace {
+		out := make([]R, len(ranges), len(ranges)+1)
+		copy(out, ranges)
+		ranges = out
+	}
 	for {
 		mergerHappened := false
 		for idx := range len(ranges) {

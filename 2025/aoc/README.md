@@ -17,4 +17,5 @@ cat ../data/aoc7-input.txt | go run . aoc7b
 cat ../data/aoc8-input.txt | go run . aoc8a 1000 3
 cat ../data/aoc8-input.txt | go run . aoc8b
 cat ../data/aoc9-input.txt | go run . aoc9a
+cat ../data/aoc9-input.txt | go run . aoc9b
 ```

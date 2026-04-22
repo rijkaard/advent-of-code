@@ -1,6 +1,3 @@
-// hello.go
-
-// package aoc25
 package main
 
 import (
@@ -8,11 +5,6 @@ import (
 	"os"
 	"strconv"
 )
-
-// type FunctionMap map[string]func(...any)
-// var x FunctionMap = FunctionMap{
-// 		"aoc1": func(...any){ return aoc1(50, 100)}
-// }
 
 func main() {
 	if len(os.Args) < 2 {
@@ -69,6 +61,8 @@ func main() {
 		fmt.Println(aoc8b())
 	case "aoc9a":
 		fmt.Println(aoc9a())
+	case "aoc9b":
+		fmt.Println(aoc9b())
 	default:
 		fmt.Printf("Invalid command: %s", cmd)
 	}
